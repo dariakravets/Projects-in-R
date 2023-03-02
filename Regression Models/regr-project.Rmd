@@ -1,0 +1,80 @@
+---
+title: "Regression Models Course Project"
+author: "Daria Kravets"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Assignment Overview
+
+You work for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+1. “Is an automatic or manual transmission better for MPG?”
+
+2. "Quantify the MPG difference between automatic and manual transmissions".
+
+## Data
+
+Let's have a look at our dataset, specifically on different values of few first rows:
+
+```{r}
+library(datasets)
+data("mtcars")
+head(mtcars)
+```
+
+## Automatic vs. manual transmission
+
+First of all, we can look at plot to see if there is any visible difference between MPG values for both types of transmission. Look at appendix 1. 
+
+As we can see, values for different types of transmission are not equally distributed, so that can lead us to conclusion, that we need to explore which one is better.
+
+What can T-test show us?
+
+```{r}
+t.test(mtcars$mpg~mtcars$am)
+```
+
+P-value is really small, that means we should reject a null-hypothesis, which says that there is no difference between types of transmission. 
+
+In the dataset description it states `Transmission (0 = automatic, 1 = manual)`, so our conclusion is that **manual transmission is better for MPG than automatic**
+
+## Quantify the MPG difference between automatic and manual transmissions
+
+First thing, we need to do a multivariate linear regression:
+
+```{r}
+mult <- lm(mpg~., mtcars)
+st <- step(mult, direction = "both")
+```
+
+And let's have a look at summary
+
+```{r}
+summary(st)
+```
+
+As we can see, results suggest that best model includes `cyl`, `hp`, `wt` and `am` variables. About 86.59% variance is covered by it. First column (Estimate) shows that number of cylinders reducing MPG value (-3.03 for cyl6 and -2.16 for cyl8), as well as gross horsepower (-0.03) and weight (-2.49). But manual transmission is better than automatic (+1.809).
+
+## Conclusion
+
+In general, manual transmission seems to be better than automatic by 1.809 mpg. But there are some other factors that have impact on mpg values.
+
+## Appendix
+
+#### Appendix 1
+
+```{r}
+plot(mtcars$mpg, mtcars$am, pch = 19, col = "#0665a5")
+```
+
+#### Appendix 2
+
+```{r}
+par(mfrow = c(2, 2))
+plot(st)
+```
