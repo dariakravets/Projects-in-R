@@ -1,0 +1,115 @@
+---
+title: "Statistical Interference Сourse Project. Part 2"
+author: "Daria Kravets"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task requirments
+
+In the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+
+1. Load the ToothGrowth data and perform some basic exploratory data analyses
+
+2. Provide a basic summary of the data.
+
+3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
+
+4. State your conclusions and the assumptions needed for your conclusions.
+
+## Analysis
+
+First of all, we need to load the data, and we can look at few rows of dataset:
+
+```{r}
+data("ToothGrowth")
+head(ToothGrowth)
+```
+
+We can see that there are 3 columns:
+
+`len` numeric	Tooth length
+
+`supp`	factor	Supplement type (VC or OJ)
+
+`dose`	numeric	Dose in milligrams/day
+
+**Basic summary**
+
+```{r}
+summary(ToothGrowth)
+```
+
+Let's look at some characteristics of Length column:
+
+```{r}
+mean(ToothGrowth$len)
+sd(ToothGrowth$len)
+var(ToothGrowth$len)
+```
+
+**Correlation. Step 1**
+
+Let's check if there is any correlation between tooth length and dose:
+
+```{r}
+cor.test(ToothGrowth$len, ToothGrowth$dose)
+```
+
+As we can see, it is, and it's big. What about supplement type? We want to find if it has impact on length too.
+
+**Plots**
+
+Let's take a look at the box plots:
+
+```{r}
+library(ggplot2)
+
+ggplot(ToothGrowth, aes(x = dose, y = len, fill = factor(dose))) + 
+  geom_boxplot(position = position_dodge()) +
+  facet_wrap(~supp)
+```
+
+We can see there is a difference between how these two types of supplement affecting tooth growth.
+
+**95% confidence intervals**
+
+```{r}
+mean(ToothGrowth$len) + c(-1, 1) * qnorm(0.975) * sd(ToothGrowth$len) / sqrt(length(ToothGrowth$len))
+```
+
+
+**T-tests**
+
+```{r}
+t.test(len~supp, data = ToothGrowth)
+```
+
+T-test shows that we cannot reject null hypothesis that the difference in group means is zero (in our case that supplement type doesn't impact tooth length).
+
+Let's divide our dataset into three different sets by dosage:
+
+```{r}
+d1 <- subset(ToothGrowth, dose == 0.5)
+d2 <- subset(ToothGrowth, dose == 1)
+d3 <- subset(ToothGrowth, dose == 2)
+```
+
+And then we will repeat our T-test for all three groups:
+
+```{r}
+t.test(len~supp, data = d1)
+t.test(len~supp, data = d2)
+t.test(len~supp, data = d3)
+```
+
+And here are our final results: for dosage 0.5 mg/day and 1 mg/day we can reject null hypothesis, and for dosage 2 mg/day we cannot reject null hypothesis.
+
+## Conclusions
+
+- Tooth growth is not completely affected by supplement type.
+- If pig is receiving vitamin C in 0.5 mg/day or 1 mg/day, there will be difference of having it as orange juice or ascorbic acid. As shown on plots, orange juice will have better effect.
+- If dose is 2 mg/day, we can state that there is no big difference in received supplement type.
