@@ -1,0 +1,96 @@
+---
+title: 'Дисперсійний аналіз'
+author: "Daria Kravets"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Завантажуємо датасет:
+
+```{r}
+employee1 = read.csv("E://DownloadsE//WA_Fn-UseC_-HR-Employee-Attrition (1).csv")
+```
+
+***MonthlyIncome*** - щомісячний дохід;
+***JobRole*** - посада.
+
+Підключаємо бібліотеку ***ggplot2***
+
+```{r}
+library(ggplot2)
+```
+
+Задаємо змінну ***JobRole*** як фактор:
+```{r}
+employee1$JobRole <- factor(employee1$JobRole)
+```
+
+Подивимось на зображення даних:
+```{r}
+p<-ggplot(employee1, aes(x=MonthlyIncome, y=JobRole, color=JobRole)) +
+  geom_jitter(position=position_jitter(0.2)) 
+p + theme(legend.position="none")
+```
+
+```{r}
+boxplot(MonthlyIncome ~ JobRole, data = employee1,
+        xlab = "JobRole", ylab = "Monthly Income",
+        main = "Income ~ JobRole", col = c("#f8766d", "#d69f22", "#93aa00", "#00ba38", "#00c19f", "#00b9e3", "#619cff", "#db72fb", "#ff61c3"))
+```
+
+Проведемо дисперсійний аналіз:
+```{r}
+aggregate(x = employee1$MonthlyIncome, by = list(employee1$JobRole), FUN = mean)
+```
+
+```{r}
+mod1 <- aov(MonthlyIncome ~ JobRole, data = employee1)
+summary(aov(MonthlyIncome ~ JobRole, data = employee1))
+```
+
+Гіпотезу про відсутність впливу посади на дохід відхиляємо.
+
+```{r}
+summary(lm(MonthlyIncome ~ JobRole, data = employee1))
+```
+
+```{r}
+contrasts(employee1$JobRole) <- contr.sum
+contrasts(employee1$JobRole)
+```
+
+```{r}
+summary(lm(MonthlyIncome ~ JobRole, data = employee1))
+```
+
+```{r}
+plot(mod1)
+```
+
+
+```{r}
+hist(mod1$residuals, col = "#48bd94", main="Гістограма залишків моделі")
+```
+
+```{r}
+library(ggpubr)
+ggqqplot(mod1$residuals)
+```
+
+```{r}
+shapiro.test(mod1$residuals)
+```
+
+```{r}
+tapply(employee1$MonthlyIncome, employee1$JobRole, var)
+```
+
+```{r}
+bartlett.test(employee1$MonthlyIncome, employee1$JobRole)
+```
+
